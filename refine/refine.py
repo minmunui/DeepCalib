@@ -4,6 +4,11 @@ import os
 import cv2
 import numpy as np
 
+X_LEFT = 20
+X_RIGHT = 20
+Y_TOP = 20
+Y_BOTTOM = 20
+
 
 def get_black_border(img):
     """
@@ -53,11 +58,10 @@ def crop_images(image_dir, crop_rect, output_dir="cropped"):
     for image_name in os.listdir(image_dir):
         print(f"Processing image {image_name} from {image_dir}")
         img = cv2.imread(os.path.join(image_dir, image_name))
-        cropped_img = img[crop_rect[2]:crop_rect[3], crop_rect[0]:crop_rect[1]]
+        cropped_img = img[crop_rect[2] + Y_TOP:crop_rect[3] + Y_TOP - Y_BOTTOM, crop_rect[0] + X_LEFT:crop_rect[1] + X_LEFT - X_RIGHT]
         output_path = os.path.join("output", output_dir, image_name)
         cv2.imwrite(output_path, cropped_img)
         print(f"Images saved to {output_path}")
-
 
 
 if __name__ == "__main__":

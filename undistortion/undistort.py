@@ -9,6 +9,11 @@ import pandas as pd
 
 
 def parse_file_to_dataframe(file_path):
+    """
+    파일을 읽어 데이터프레임으로 변환 : read the file and convert it to a dataframe
+    :param file_path: 파일 경로 : file path
+    :return: 데이터프레임 : dataframe
+    """
     # 빈 리스트를 생성하여 데이터를 저장
     data = []
 
@@ -106,9 +111,10 @@ def undistort_images(image_paths, focals, distortions, output_dir="undistorted")
     for i in range(len(image_paths)):
         img = cv2.imread(image_paths[i])
         image_name = image_paths[i].split(os.sep)[-1]
-        print(f"Saving undistorted image {image_name}")
-        cv2.imwrite(os.path.join("output", output_dir, f"{image_name}"),
-                    undistort_image(img, focals[i], distortions[i]))
+        print(f"Undistorting image {image_name}")
+        undistorted = undistort_image(img, focals[i], distortions[i])
+        print(f"Saving undistorted image to {os.path.join('output', output_dir, image_name)}")
+        cv2.imwrite(os.path.join("output", output_dir, f"{image_name}"), undistorted)
 
 
 def undistort_images_from_file(result_file, output_dir="undistorted"):
@@ -129,9 +135,9 @@ def get_mean_params_from_file(result_file):
     return image_paths, focal_mean, distortion_mean
 
 
-def undistort_with_mean_params(result_file):
+def undistort_with_mean_params(result_file, output_dir="undistorted"):
     image_paths, focal_mean, distortion_mean = get_mean_params_from_file(result_file)
-    return undistort_images(image_paths, [focal_mean] * len(image_paths), [distortion_mean] * len(image_paths))
+    return undistort_images(image_paths, [focal_mean] * len(image_paths), [distortion_mean] * len(image_paths), output_dir)
 
 
 if __name__ == '__main__':
@@ -141,8 +147,13 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--output', type=str, help='output directory name', nargs='?', default="undistorted")
     parser.add_argument('-p', '--option', type=str, help='option', nargs='?', default="mean")
     if parser.parse_args().option == "mean":
-        undistort_with_mean_params(parser.parse_args().input)
+        undistort_with_mean_params(parser.parse_args().input, output_dir=parser.parse_args().output)
+    elif parser.parse_args().option == "manual":
+        parser.parse_args()
+        input_paths = os.listdir(os.path.join('input', parser.parse_args().input))
+        input_paths = [os.path.join('input', parser.parse_args().input, path) for path in input_paths]
+        undistort_images(input_paths, [330] * len(input_paths), [0.30] * len(input_paths), output_dir=parser.parse_args().output)
     else:
-        undistort_images_from_file(parser.parse_args().input)
+        undistort_images_from_file(parser.parse_args().input, output_dir=parser.parse_args().output)
     end_time = time.time()
     print(f"Total time: {end_time - start_time} seconds")
